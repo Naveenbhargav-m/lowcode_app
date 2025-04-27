@@ -1,0 +1,85 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    overflow: auto;
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+
+input::-webkit-scrollbar {
+    display: none; /* Hides scrollbar */
+}
+
+
+.scrollable-div {
+    overflow-y: scroll;
+    overflow-x: scroll;
+    /*-ms-overflow-style: none; /* Hide scrollbar in Internet Explorer and Edge */
+    /*scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+
+
+
+
+
+
+  * { box-sizing: border-box; }
+
+  .container {
+    display: flex;
+  }
+  
+  .builder {
+    flex: 1;
+  }
+  
+  .canvas {
+    display: flex;
+    flex-flow: row wrap;
+    width: 80%;
+    margin: 0 auto;
+    border: 2px dashed #ccc;
+    padding: 20px;
+    min-height: 300px;
+  }
+  
+  .block {
+    padding: 20px;
+    margin: 10px;
+    border-radius: 5px;
+    cursor: move;
+  }
+  
+  .config-panel {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-left: 20px;
+  }
+  
+  .add-blocks {
+    margin-top: 20px;
+  }
+  
+  select {
+    width: 100%;
+  }
+  
+
+  /* Default option styling */
+option.custom-option {
+  background-color: white;
+  color: black;
+}
+
+/* Attempt to style highlighted/selected option */
+option.custom-option:checked,
+option.custom-option:hover,
+option.custom-option:focus {
+  background-color: black;
+  color: white;
+}
