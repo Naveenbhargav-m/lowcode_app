@@ -1,7 +1,6 @@
 import { signal } from "@preact/signals";
 
 
-let APPID = signal("");
-let CREATOR_ID = signal("nokodo_creator");
+let CurrentActiveScreen = signal({});
 
-export {APPID, CREATOR_ID};
+export {CurrentActiveScreen};
