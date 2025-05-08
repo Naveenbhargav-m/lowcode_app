@@ -1,10 +1,10 @@
 import { useLocation } from "preact-iso";
 import { useEffect } from "preact/hooks";
-import { APPID } from "../state/app_state";
-import {GetAppsFromDB,apps} from "./apps_list_state";
+import {GetAppsfromDB,apps} from "./apps_list_state";
+import { AppID } from "../api_manager/api_clients";
 export function AppList() {
     useEffect((()=>{
-        GetAppsFromDB();
+      GetAppsfromDB();
     }),[]);
     let router = useLocation();
     return(
@@ -17,7 +17,7 @@ export function AppList() {
               onClick={()=> {
                   let newappname = app["gen_name"];
                   localStorage.setItem("db_name",newappname);
-                  APPID.value = newappname;
+                  AppID.value = newappname;
                 //   sideBarEnable.value = true;
                   router.route("/home");
                  }}
