@@ -1,34 +1,34 @@
 import { h } from 'preact';
 import { signal , effect} from "@preact/signals";
-import { ActionExecutor, FunctionExecutor } from '../../states/common_actions';
-import { variableKeys, variableMap } from '../../states/global_state';
-// Reactive Container Component
+// import { ActionExecutor, FunctionExecutor } from '../../states/common_actions';
+// import { variableKeys, variableMap } from '../../states/global_state';
+// // Reactive Container Component
 const ContainerTemplate = ({ config, value, action, children }) => {
   if(config == undefined) {
     return <></>;
   }
   const containerConfig = signal(config);
   effect(() => {
-    const keys = variableKeys.peek();
-    let datamap = {};
+    // const keys = variableKeys.peek();
+    // let datamap = {};
 
-    for (const key of keys) {
-      const variableEntry = variableMap[key];
-      if (variableEntry && variableEntry.value !== undefined) {
-        datamap[key] = variableEntry.value;
-      }
-    }
+    // for (const key of keys) {
+    //   const variableEntry = variableMap[key];
+    //   if (variableEntry && variableEntry.value !== undefined) {
+    //     datamap[key] = variableEntry.value;
+    //   }
+    // }
 
-    const newStyles = FunctionExecutor(datamap, containerConfig.value.styleCode);
-    containerConfig.value.style = { ...containerConfig.value.style, ...newStyles };
+    // const newStyles = FunctionExecutor(datamap, containerConfig.value.styleCode);
+    // containerConfig.value.style = { ...containerConfig.value.style, ...newStyles };
   });
   return (
     <div
       style={containerConfig.value.style}
-      onClick={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onClick"); }}
-      onDblClick={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onDoubleClick"); }}
-      onMouseEnter={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onHoverEnter"); }}
-      onMouseLeave={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onHoverLeave"); }}
+      // onClick={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onClick"); }}
+      // onDblClick={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onDoubleClick"); }}
+      // onMouseEnter={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onHoverEnter"); }}
+      // onMouseLeave={(e) => { e.stopPropagation(); ActionExecutor(containerConfig.value.id, "onHoverLeave"); }}
     >
       {children || value}
     </div>

@@ -1,10 +1,10 @@
 import { signal } from "@preact/signals";
-import { CreatorAPPID, PrestClient } from "../api_manager/api_clients";
+import { ApiClient, CreatorAPPID } from "../api_manager/api_clients";
 
 const apps = signal([]);
 
 async function GetAppsfromDB() {
-  let myclient = PrestClient;
+  let myclient = ApiClient;
   let url = `${CreatorAPPID}/public/apps`;
   let response = await myclient.get(url);
 

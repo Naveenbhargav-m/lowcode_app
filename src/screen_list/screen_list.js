@@ -1,6 +1,7 @@
 import { signal } from "@preact/signals";
 import { generateUID } from "../utils/helpers";
 import { GetDataFromAPi } from "../api_manager/api_functions";
+import { ActiveScreen } from "../state/screen_state";
 
 let screens = {};
 let curScreen = {};
@@ -33,5 +34,9 @@ function GetScreensFromDB() {
     });
 }
 
-
-export {GetScreensFromDB, screenFetchSignal, screens, curScreen};
+function SetActiveScreen(screen_id) {
+    let curScreen = screens[screen_id];
+    ActiveScreen.value = {...curScreen};
+    console.log("current screen and active screen:",curScreen, ActiveScreen.value, screen_id);
+} 
+export {GetScreensFromDB, screenFetchSignal, screens, curScreen, SetActiveScreen};
