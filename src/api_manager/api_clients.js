@@ -7,7 +7,6 @@ const AppID = signal("");
 const CreatorAPPID = signal("nokodo_creator");
 
 let ApiClient = new APIManager(CreatorBackendUrl, 1000);
-let PrestClient = new APIManager(PrestDBaseUrl, 1000);
 
 
-export{ApiClient, PrestClient, AppID, CreatorAPPID};
+export{ApiClient, AppID, CreatorAPPID};

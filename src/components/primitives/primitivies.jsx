@@ -1,7 +1,6 @@
 import { effect, signal } from '@preact/signals';
 import DynamicIcon from '../custom/dynamic_icon';
-import { showFormPopup, variableKeys, variableMap } from '../../states/global_state';
-import { ActionExecutor, FunctionExecutor } from '../../states/common_actions';
+
 
 
 const useDynamicConfig = (initialConfig, initialValue) => {
@@ -9,25 +8,24 @@ const useDynamicConfig = (initialConfig, initialValue) => {
   const value = signal(initialValue);
 
   effect(() => {
-    const keys = variableKeys.peek();
-    let datamap = {};
+    // const keys = variableKeys.peek();
+    // let datamap = {};
 
-    for (const key of keys) {
-      const variableEntry = variableMap[key];
-      if (variableEntry && variableEntry.value !== undefined) {
-        datamap[key] = variableEntry.value;
-      }
-    }
+    // for (const key of keys) {
+    //   const variableEntry = variableMap[key];
+    //   if (variableEntry && variableEntry.value !== undefined) {
+    //     datamap[key] = variableEntry.value;
+    //   }
+    // }
 
-    const newStyles = FunctionExecutor(datamap, config.value.styleCode);
-    config.value.style = { ...config.value.style, ...newStyles };
+    // const newStyles = FunctionExecutor(datamap, config.value.styleCode);
+    // config.value.style = { ...config.value.style, ...newStyles };
 
-    const newValue = FunctionExecutor(datamap, config.value.valueCode);
-    if (newValue && newValue.value !== undefined && newValue.value !== null) {
-      value.value = newValue.value;
-    }
+    // const newValue = FunctionExecutor(datamap, config.value.valueCode);
+    // if (newValue && newValue.value !== undefined && newValue.value !== null) {
+    //   value.value = newValue.value;
+    // }
   });
-
   return { config, value };
 };
 
@@ -37,13 +35,13 @@ export const DynamicWrapper = ({ children, config, value }) => {
 
   const handleAction = (actionType) => (e) => {
     // // e.stopPropagation();
-    ActionExecutor(dynamicConfig.value.id, actionType);
-    if (actionType === "onClick" && dynamicConfig.value.actions?.onClick) {
-      const clickAction = FunctionExecutor({}, dynamicConfig.value.actions.onClick);
-      if (clickAction?.show_form !== undefined) {
-        showFormPopup.value = clickAction.show_form;
-      }
-    }
+    // ActionExecutor(dynamicConfig.value.id, actionType);
+    // if (actionType === "onClick" && dynamicConfig.value.actions?.onClick) {
+    //   const clickAction = FunctionExecutor({}, dynamicConfig.value.actions.onClick);
+    //   if (clickAction?.show_form !== undefined) {
+    //     showFormPopup.value = clickAction.show_form;
+    //   }
+    // }
   };
   return (
       <div
@@ -147,7 +145,6 @@ export const Dropdown = ({ value, config }) => {
       onChange={(e) => {
         e.stopPropagation();
         value.value = e.target["value"];
-        ActionExecutor(config.value.id, "onChange");
       }}
     >
       {config.options.map((option) => (

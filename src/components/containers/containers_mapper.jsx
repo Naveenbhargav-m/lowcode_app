@@ -1,6 +1,5 @@
 import { renderPrimitiveElement } from "../primitives/primitiveMapper";
 import { Card, GridView, Row, Column, Container, ListView, ScrollArea, Carousel } from "./container_components";
-import { Drawer, HoverModal, PopupModal } from "../model_containers/model_components";
 import { effect, signal } from '@preact/signals';
 import { renderTemplate } from "../templates/template_mapper";
 
@@ -91,27 +90,27 @@ export function renderContainer(layoutItem, ElementsMap) {
               ElementsMap={ElementsMap}
               />
       </Carousel>;
-    case "model":
-      return <PopupModal {...layoutItem}>
-         <RenderChildren 
-              childrenElements={childElements}
-              ElementsMap={ElementsMap}
-              />
-      </PopupModal>;
-    case "hover_card":
-      return <HoverModal {...layoutItem}>
-         <RenderChildren 
-              childrenElements={childElements}
-              ElementsMap={ElementsMap}
-              />
-      </HoverModal>;
-    case "side_drawer":
-      return <Drawer {...layoutItem}>
-         <RenderChildren  
-              childrenElements={childElements}
-              ElementsMap={ElementsMap}
-              />
-      </Drawer>
+    // case "model":
+    //   return <PopupModal {...layoutItem}>
+    //      <RenderChildren 
+    //           childrenElements={childElements}
+    //           ElementsMap={ElementsMap}
+    //           />
+    //   </PopupModal>;
+    // case "hover_card":
+    //   return <HoverModal {...layoutItem}>
+    //      <RenderChildren 
+    //           childrenElements={childElements}
+    //           ElementsMap={ElementsMap}
+    //           />
+    //   </HoverModal>;
+    // case "side_drawer":
+    //   return <Drawer {...layoutItem}>
+    //      <RenderChildren  
+    //           childrenElements={childElements}
+    //           ElementsMap={ElementsMap}
+    //           />
+    //   </Drawer>
     case "user_template":
       return (
           <Card {...layoutItem}>

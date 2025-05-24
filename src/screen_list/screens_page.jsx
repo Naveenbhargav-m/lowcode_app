@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
-import { GetScreensFromDB, screenFetchSignal, screens } from "./screen_list";
+import { GetScreensFromDB, screenFetchSignal, screens, SetActiveScreen } from "./screen_list";
 import { Loader2, Monitor } from "lucide-react";
+import { useLocation } from "preact-iso";
 
 
 // Reusable Loading Component
@@ -46,6 +47,7 @@ function LoadingSpinner() {
   function ScreenList() {
     const [nameObjs, setNameObjs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    let location = useLocation();
   
     useEffect(() => {
       GetScreensFromDB();
@@ -71,6 +73,8 @@ function LoadingSpinner() {
     // Handle screen selection
     const handleSelectScreen = (screen) => {
       console.log("Selected screen:", screen);
+      SetActiveScreen(screen["id"]);
+      location.route("/view");
       // You can implement selection logic here
     };
   
