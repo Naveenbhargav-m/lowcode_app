@@ -32,7 +32,7 @@ export function renderContainer(layoutItem, ElementsMap) {
   layoutItem.configs["id"] = layoutItem.id;
   const { title, children } = layoutItem;
   let childrenSignal = signal(children);
-  let childElements = childrenSignal.value.map(childId => ElementsMap[childId]?.value);
+  let childElements = childrenSignal.value.map(childId => ElementsMap[childId]);
   switch (title) {
     case "card":
       return <Card {...layoutItem}>
@@ -90,28 +90,8 @@ export function renderContainer(layoutItem, ElementsMap) {
               ElementsMap={ElementsMap}
               />
       </Carousel>;
-    // case "model":
-    //   return <PopupModal {...layoutItem}>
-    //      <RenderChildren 
-    //           childrenElements={childElements}
-    //           ElementsMap={ElementsMap}
-    //           />
-    //   </PopupModal>;
-    // case "hover_card":
-    //   return <HoverModal {...layoutItem}>
-    //      <RenderChildren 
-    //           childrenElements={childElements}
-    //           ElementsMap={ElementsMap}
-    //           />
-    //   </HoverModal>;
-    // case "side_drawer":
-    //   return <Drawer {...layoutItem}>
-    //      <RenderChildren  
-    //           childrenElements={childElements}
-    //           ElementsMap={ElementsMap}
-    //           />
-    //   </Drawer>
     case "user_template":
+      console.log("came to user template:",layoutItem, childElements, ElementsMap);
       return (
           <Card {...layoutItem}>
           <RenderChildren 
