@@ -1,19 +1,14 @@
 
 
+import { executeElementEvent } from "../../events_engine/events_class";
+import { DynamicWrapper } from "../dynamic_wrappers";
 import { Text, Number, TextArea, ProgressBar, Avatar, AvatarGroup, Dropdown, Button, Image, Badge, Icon, IconButton } from "./primitivies";
+// primitiveMapper.js - Updated sections
 
 
-// Function to map drop data to the correct primitive component
 
 
-function ActiveWrapper({data ,children }) {
-  return (
-        <div style={{display:"contents"}} onClick={(e) => {
-          e.stopPropagation();
-        }}>
-          {children}
-        </div>);
-}
+// Updated renderPrimitiveElement function
 export const renderPrimitiveElement = (data) => {
   let configs = { ...data.configs };
   let configObj = {};
@@ -26,141 +21,126 @@ export const renderPrimitiveElement = (data) => {
   configObj = { ...configObj, ...configs };
   
   if (!data || !data.title) {
-    // Return a fallback UI or null if data is missing
     return <div>No element selected</div>;
   }
+
+  // Pass the full element data to components
+  const commonProps = {
+    config: configObj,
+    element: data // Pass the full element for event handling
+  };
 
   switch (data.title) {
     case "text":
       return (
-       <ActiveWrapper data={data} >
-        <Text
-          value={"Sample Text " + data.id}
-          config={{...configObj}}
-        />
-      </ActiveWrapper>
+        <DynamicWrapper config={commonProps.config} value={data} element={commonProps.element}>
+        {(dynamicValue) => (
+          <span style={{...commonProps.config["style"]}}>{dynamicValue}</span>
+        )}
+      </DynamicWrapper>
       );
       
     case "number":
       return (
-        <ActiveWrapper data={data}>
-        <Number
-          value={42}
-          config={{...configObj}}
-        />
-        </ActiveWrapper>
+          <Number
+            value={42}
+            {...commonProps}
+          />
       );
 
     case "text_area":
       return (
-        <ActiveWrapper data={data} >
-        <TextArea
-          value="Sample Text Area"
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+        <DynamicWrapper config={commonProps.config} value={data} element={commonProps.element}>
+        {(dynamicValue) => (
+          <textarea 
+            style={{...commonProps.config["style"]}} 
+            value={dynamicValue}
+            onChange={(e) => executeElementEvent(commonProps.element, 'onChange', { 
+              // @ts-ignore
+              value: e.target.value, 
+              originalEvent: e 
+            })}
+          />
+        )}
+      </DynamicWrapper>
       );
 
     case "progress_bar":
       return (
-        <ActiveWrapper data={data}>
-        <ProgressBar
-          value={50}
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+          <ProgressBar
+            value={50}
+            {...commonProps}
+          />
       );
 
     case "avatar":
       return (
-        <ActiveWrapper data={data}>
-        <Avatar
-          // @ts-ignore
-          src={data}
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+          <Avatar
+            {...commonProps}
+          />
       );
 
     case "avatar_group":
       return (
-        <ActiveWrapper data={data}>
-        <AvatarGroup
-          avatars={[]}
-          config={{...configObj}}
-        />
-        </ActiveWrapper>
+          <AvatarGroup
+            avatars={[]}
+            {...commonProps}
+          />
       );
 
     case "drop_down":
       return (
-        <ActiveWrapper data={data}>
-        <Dropdown
-          value=""
-          config={{...configObj, "options":[
-            { value: "1", label: "Option 1" },
-            { value: "2", label: "Option 2" },
-          ]}}
-        />
-        </ActiveWrapper>
+          <Dropdown
+            value=""
+            config={{
+              ...configObj, 
+              "options": [
+                { value: "1", label: "Option 1" },
+                { value: "2", label: "Option 2" },
+              ]
+            }}
+          />
       );
 
     case "button":
       return (
-        <ActiveWrapper data={data}>
-       <Button
-          value="Click Me"
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+        <DynamicWrapper config={commonProps.config} value={data} element={commonProps.element}>
+        {(dynamicValue) => (
+          <button style={{...commonProps.config["style"]}}>{dynamicValue}</button>
+        )}
+      </DynamicWrapper>
       );
 
     case "image":
       return (
-        <ActiveWrapper data={data} >
-        <Image
-          src={data}
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+          <Image
+            src={data}
+            {...commonProps}
+          />
       );
 
     case "badge":
       return (
-        <ActiveWrapper data={data} >
-        <Badge
-          value="Badge"
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+          <Badge
+            value="Badge"
+            {...commonProps}
+          />
       );
 
     case "icon":
       return (
-        <ActiveWrapper data={data} >
-        <Icon
-          name="menu"
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+          <Icon
+            name="menu"
+            {...commonProps}
+          />
       );
 
     case "icon_button":
       return (
-        <ActiveWrapper data={data} >
-        <IconButton
-          icon="mouse-pointer"
-          config={{...configObj}}
-
-        />
-        </ActiveWrapper>
+          <IconButton
+            icon="mouse-pointer"
+            {...commonProps}
+          />
       );
 
     default:
