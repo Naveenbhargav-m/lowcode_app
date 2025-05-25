@@ -103,10 +103,11 @@ export const renderPrimitiveElement = (data) => {
       );
 
     case "button":
+      console.log("config for button:", commonProps, data);
       return (
         <DynamicWrapper config={commonProps.config} value={data} element={commonProps.element}>
         {(dynamicValue) => (
-          <button style={{...commonProps.config["style"]}}>{dynamicValue}</button>
+          <button style={{...commonProps.config["style"]}}>{dynamicValue.value}</button>
         )}
       </DynamicWrapper>
       );

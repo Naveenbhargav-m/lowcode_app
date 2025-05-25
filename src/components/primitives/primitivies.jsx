@@ -1,65 +1,14 @@
 import { effect, signal } from '@preact/signals';
 import DynamicIcon from '../custom/dynamic_icon';
+import { DynamicWrapper } from '../dynamic_wrappers';
 
 
 
-const useDynamicConfig = (initialConfig, initialValue) => {
-  const config = signal(initialConfig);
-  const value = signal(initialValue);
-
-  effect(() => {
-    // const keys = variableKeys.peek();
-    // let datamap = {};
-
-    // for (const key of keys) {
-    //   const variableEntry = variableMap[key];
-    //   if (variableEntry && variableEntry.value !== undefined) {
-    //     datamap[key] = variableEntry.value;
-    //   }
-    // }
-
-    // const newStyles = FunctionExecutor(datamap, config.value.styleCode);
-    // config.value.style = { ...config.value.style, ...newStyles };
-
-    // const newValue = FunctionExecutor(datamap, config.value.valueCode);
-    // if (newValue && newValue.value !== undefined && newValue.value !== null) {
-    //   value.value = newValue.value;
-    // }
-  });
-  return { config, value };
-};
-
-// Reusable wrapper component
-export const DynamicWrapper = ({ children, config, value }) => {
-  const { config: dynamicConfig, value: dynamicValue } = useDynamicConfig(config, value);
-
-  const handleAction = (actionType) => (e) => {
-    // // e.stopPropagation();
-    // ActionExecutor(dynamicConfig.value.id, actionType);
-    // if (actionType === "onClick" && dynamicConfig.value.actions?.onClick) {
-    //   const clickAction = FunctionExecutor({}, dynamicConfig.value.actions.onClick);
-    //   if (clickAction?.show_form !== undefined) {
-    //     showFormPopup.value = clickAction.show_form;
-    //   }
-    // }
-  };
-  return (
-      <div
-        // style={{ display: "contents" }}
-        onClick={handleAction("onClick")}
-        onDblClick={handleAction("onDoubleClick")}
-        onMouseEnter={handleAction("onHoverEnter")}
-        onMouseLeave={handleAction("onHoverLeave")}
-      >
-        {children(dynamicValue?.value ?? {}, dynamicConfig?.value ?? {})}
-      </div>
-    );
-};
 
 
 // Refactored Button Component
 export const Button = ({ value, config }) => (
-  <DynamicWrapper config={config} value={value}>
+  <DynamicWrapper config={config} value={value} element={config}>
     {(dynamicValue) => (
       <button style={{...config["style"]}}>{dynamicValue}</button>
     )}
@@ -69,7 +18,7 @@ export const Button = ({ value, config }) => (
 // Refactored Text Component
 export function Text({ value, config }) {
   return (
-    <DynamicWrapper config={config} value={value}>
+    <DynamicWrapper config={config} value={value} element={config}>
     {(dynamicValue) => (
       <p style={config.style}>{dynamicValue}</p>
     )}
@@ -79,7 +28,7 @@ export function Text({ value, config }) {
 
 // Refactored Number Component
 export const Number = ({ value, config }) => (
-  <DynamicWrapper config={config} value={value}>
+  <DynamicWrapper config={config} value={value} element={config}>
     {(dynamicValue) => (
       <span style={config.style}>{dynamicValue}</span>
     )}
@@ -88,7 +37,7 @@ export const Number = ({ value, config }) => (
 
 // Refactored TextArea Component
 export const TextArea = ({ value, config }) => (
-  <DynamicWrapper config={config} value={value}>
+  <DynamicWrapper config={config} value={value} element={config}>
     {(dynamicValue) => (
       <textarea style={config.style}>{dynamicValue}</textarea>
     )}
@@ -98,7 +47,7 @@ export const TextArea = ({ value, config }) => (
 
 // Refactored IconButton Component
 export const IconButton = ({ icon, config }) => (
-  <DynamicWrapper config={config} value={icon}>
+  <DynamicWrapper config={config} value={icon} element={config}>
     {(dynamicValue) => (
       <button style={{...config["style"]}}>
         <DynamicIcon name={dynamicValue} size={config.style?.iconSize} />
@@ -109,7 +58,7 @@ export const IconButton = ({ icon, config }) => (
 
 // Refactored Image Component
 export const Image = ({ src, config }) => (
-  <DynamicWrapper config={config} value={src}>
+  <DynamicWrapper config={config} value={src} element={config}>
     {(dynamicValue) => (
       <img src={dynamicValue} alt="" style={config.style} />
     )}
@@ -119,7 +68,7 @@ export const Image = ({ src, config }) => (
 // Refactored Avatar Component
 export function Avatar({config }) {
     return (
-      <DynamicWrapper config={config} value={config["value"]}>
+      <DynamicWrapper config={config} value={config["value"]} element={config}>
     {(dynamicValue) => {
       return <img src={dynamicValue} alt="" style={{ ...config.style, borderRadius: "50%" }} />
     }}
@@ -128,7 +77,7 @@ export function Avatar({config }) {
 }
 // Refactored Badge Component
 export const Badge = ({ value, config }) => (
-  <DynamicWrapper config={config} value={value}>
+  <DynamicWrapper config={config} value={value} element={config}>
     {(dynamicValue) => (
       <span style={{...config["style"]}}>{dynamicValue}</span>
     )}
@@ -138,7 +87,7 @@ export const Badge = ({ value, config }) => (
 
 export const Dropdown = ({ value, config }) => {
   return (
-    <DynamicWrapper config={config} value={value}>
+    <DynamicWrapper config={config} value={value} element={config}>
     {(dynamicValue) => (
       <select
       style={config.style}
@@ -158,24 +107,9 @@ export const Dropdown = ({ value, config }) => {
   );
 };
 
-
-
-
-
-/*
-export const Text = ({ value, config }) => (
-  <DynamicWrapper config={config} value={value}>
-    {(dynamicValue) => (
-      <p style={config.style}>{dynamicValue}</p>
-    )}
-  </DynamicWrapper>
-);
-*/
-
-
 export const ProgressBar = ({ value, config }) => {
   return (
-    <DynamicWrapper config={config} value={value}>
+    <DynamicWrapper config={config} value={value} element={config}>
       {(dynamicValue) => (
         <div style={config.style}>
           <div
@@ -194,7 +128,7 @@ export const ProgressBar = ({ value, config }) => {
 
 export const Indicator = ({ active, config }) => {
   return (
-    <DynamicWrapper config={config} value={active}>
+    <DynamicWrapper config={config} value={active} element={config}>
       {({ style, value }) => (
         <span
           style={{
@@ -209,7 +143,7 @@ export const Indicator = ({ active, config }) => {
 
 export const AvatarGroup = ({ avatars, config }) => {
   return (
-    <DynamicWrapper config={config} value={avatars}>
+    <DynamicWrapper config={config} value={avatars} element={config}>
       {(value , dynamicConfig) => {
         return (
         <div style={dynamicConfig["style"]}>
@@ -236,7 +170,7 @@ export const AvatarGroup = ({ avatars, config }) => {
 
 export const Icon = ({ name, config }) => {
   return (
-    <DynamicWrapper config={config} value={name}>
+    <DynamicWrapper config={config} value={name} element={config}>
       {(dynamicValue) => (
         <span style={config["style"]}>
           <DynamicIcon name={dynamicValue} size={config["style"].size} />
