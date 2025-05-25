@@ -1,5 +1,10 @@
 // events_engine.js
 
+import { ApiClient, AppID } from "../api_manager/api_clients";
+import { DynamicForm } from "../form_renderer/dynamic_form";
+import { showModal } from "../popup_models/popupmodels";
+import { ActiveScreenView } from "../state/screen_state";
+
 class EventsEngine {
     constructor() {
       this.actionHandlers = new Map();
@@ -119,6 +124,7 @@ class EventsEngine {
     // Default action handlers
     async showForm(formIds, config, context) {
       console.log('Showing form:', formIds, config);
+      ShowForm(formIds, config);
       // Implement your form showing logic here
       // Example: this.formManager.showForm(formIds[0], config.modal);
     }
@@ -183,5 +189,38 @@ class EventsEngine {
   export const executeElementEvent = (element, eventType, eventData) => {
     eventsEngine.executeElementEvent(element, eventType, eventData);
   };
+
+
+
+  function ShowForm(form_ids, config) {
+    let client = ApiClient;
+    let formid = form_ids[0] || "";
+    let formidpart = formid.split(".");
+    if(formidpart === undefined ) {
+        return;
+    }
+    if(formidpart.length < 1) {
+        return;
+    }
+    let id = formidpart[1];
+    let url = `${AppID}/public/_forms`;
+    ApiClient.get(url, {"query": {"where": `id=${id}`}}).then((data) => {
+        if(data === undefined) {
+            return;
+        }
+
+        let firstelement = data[0];
+        console.log("form data:",data, firstelement);
+        if(firstelement === undefined) {
+            return;
+        }
+
+        let children = firstelement["configs"][ActiveScreenView.value];
+        console.log("children :", children);
+        let component = <DynamicForm formConfig={children}/>
+        showModal(component);
+
+    });
+  }
   
   export default EventsEngine;

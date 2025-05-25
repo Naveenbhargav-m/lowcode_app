@@ -54,7 +54,12 @@ const DynamicWrapper = ({ children, config, value, element }) => {
         onChange: createEventHandler("onChange")
       };
     }, [element.id, dynamicValue?.value]); // Only recreate when element ID or value changes
-  
+    console.log("dynamic value:", dynamicValue.value, );
+    console.log("dynamic config:",dynamicConfig);
+    console.log("original value:", value, );
+    console.log("original config:",config);
+    console.log("original element:",element);
+
     return (
       <div {...eventHandlers}>
         {children(dynamicValue?.value ?? value, dynamicConfig ?? config)}

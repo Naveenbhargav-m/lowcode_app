@@ -6,6 +6,7 @@ import { AppList } from "./apps_list/apps_list";
 import { ScreenList } from "./screen_list/screens_page";
 import { ScreenpageRenderer } from "./screen_renderer/screen_page_renderer";
 import { VirtualizedRendererComponent } from "./components/render_elements";
+import { BottomDrawer, DemoContent, Modal, SideDrawer } from "./popup_models/popupmodels";
 
 
 export function App() {
@@ -20,10 +21,14 @@ export function App() {
           <Route path="/home" component={ScreenList} />
           <Route path="/view" component={VirtualizedRendererComponent}/>
           <Route path="/view/:id" component={ScreenpageRenderer} />
+          <Route path="/test" component={DemoContent} />
           <Route default component={NotFoundComponent} />
 
         </Router>
       </main>
+      <Modal />
+      <SideDrawer />
+      <BottomDrawer />
 </div>
 
     </LocationProvider>
