@@ -123,7 +123,7 @@ const SideDrawer = () => {
       
       {/* Drawer */}
       <div 
-        className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ${
           sideDrawer.isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
