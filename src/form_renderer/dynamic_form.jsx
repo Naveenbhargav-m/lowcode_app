@@ -1,222 +1,201 @@
-import { useState, useEffect, useMemo } from 'react';
-import { CheckboxInput, Column, DateInput, DateTimeInput, DualRangeSliderInput, EmailInput, FileUploadInput, FormSteps, ImageSelectGrid, ImageUploadGrid, LookupInput, MarkdownInput, MonthInput, MultiSelectInput, Panel, PasswordInput, Row, SelectInput, TextareaInput, TextInput, TimeInput, WeekInput } from './components';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { 
+  CheckboxInput, Column, DateInput, DateTimeInput, DualRangeSliderInput, 
+  EmailInput, FileUploadInput, FormSteps, ImageSelectGrid, ImageUploadGrid, 
+  LookupInput, MarkdownInput, MonthInput, MultiSelectInput, Panel, 
+  PasswordInput, Row, SelectInput, TextareaInput, TextInput, TimeInput, WeekInput 
+} from './components';
 import { styles } from './styles';
-// Field type definitions with default props
 
-  // Extended fieldTypes mapping
-  const fieldTypes = {
-    text: {
-      component: TextInput,
-      defaultProps: {
-        type: 'text',
-        placeholder: 'Enter text (key: text)...',
-      }
-    },
-    select: {
-      component: SelectInput,
-      defaultProps: {
-        options: [],
-        placeholder: 'Select an option (key: select)...',
-      }
-    },
-    checkbox: {
-      component: CheckboxInput,
-      defaultProps: {
-        checked: false,
-      }
-    },
-    textarea: {
-      component: TextareaInput,
-      defaultProps: {
-        rows: 4,
-        placeholder: 'Enter text (key: textarea)...',
-      }
-    },
-    password: {
-      component: PasswordInput,
-      defaultProps: {
-        type: 'password',
-        placeholder: 'Enter password...',
-      }
-    },
-    markdown: {
-      component: MarkdownInput,
-      defaultProps: {
-        placeholder: 'Enter markdown text...',
-      }
-    },
-    slider: {
-      component: DualRangeSliderInput,
-      defaultProps: {
-        min: 0,
-        max: 100,
-        step: 1,
-        defaultValue: 50,
-      }
-    },
-    dual_slider: {
-      component: DualRangeSliderInput,
-      defaultProps: {
-        min: 0,
-        max: 100,
-        step: 1,
-        defaultValue: [25, 75],
-      }
-    },
-    email: {
-      component: EmailInput,
-      defaultProps: {
-        type: 'email',
-        placeholder: 'Enter email address...',
-      }
-    },
-    date: {
-      component: DateInput,
-      defaultProps: {
-        placeholder: 'Select date...',
-      }
-    },
-    date_time: {
-      component: DateTimeInput,
-      defaultProps: {
-        placeholder: 'Select date and time...',
-      }
-    },
-    time: {
-      component: TimeInput,
-      defaultProps: {
-        placeholder: 'Select time...',
-      }
-    },
-    month: {
-      component: MonthInput,
-      defaultProps: {
-        placeholder: 'Select month...',
-      }
-    },
-    week: {
-      component: WeekInput,
-      defaultProps: {
-        placeholder: 'Select week...',
-      }
-    },
-    multi_select: {
-      component: MultiSelectInput,
-      defaultProps: {
-        options: [],
-        placeholder: 'Select multiple options...',
-      }
-    },
-    lookup: {
-      component: LookupInput,
-      defaultProps: {
-        options: [],
-        placeholder: 'Search and select...',
-      }
-    },
-    file_upload: {
-      component: FileUploadInput,
-      defaultProps: {
-        accept: '*/*',
-        multiple: false,
-      }
-    },
-    image_upload_grid: {
-      component: ImageUploadGrid,
-      defaultProps: {
-        maxFiles: 5,
-        accept: 'image/*',
-      }
-    },
-    image_select_grid: {
-      component: ImageSelectGrid,
-      defaultProps: {
-        options: [],
-        multiple: false,
-      }
-    },
-    row: {
-      component: Row,
-      defaultProps: {
-        children: [],
-      }
-    },
-    column: {
-      component: Column,
-      defaultProps: {
-        children: [],
-      }
-    },
-    panel: {
-      component: Panel,
-      defaultProps: {
-        title: '',
-        children: [],
-      }
-    },
-    form_steps: {
-      component: FormSteps,
-      defaultProps: {
-        steps: [],
-        currentStep: 0,
-      }
-    }
-  };
-
-// Form Field Components
-// Field Renderer Component
-function FieldRenderer({ 
-  field, 
-  values, 
-  errors, 
-  onChange,
-  onFocus,
-  onBlur,
-  fieldsConfig,
-  renderField
-}) {
-  // If field should be hidden based on conditions, return null
-  if (field.hidden && evaluateCondition(field.hidden, values)) {
-    return null;
+// Autofill override styles
+const autofillStyles = `
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #000 !important;
+    background-color: white !important;
+    color: #000 !important;
   }
+  
+  input:-webkit-autofill::first-line,
+  textarea:-webkit-autofill::first-line {
+    color: #000 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+`;
 
-  // If it's a container component (row, column, panel)
-  if (['row', 'column', 'panel'].includes(field.type)) {
-    const LayoutComponent = fieldTypes[field.type].component;
-    const childFields = (field.children || []).map(childId => 
-      fieldsConfig.find(f => f.id === childId)
-    ).filter(Boolean);
-    console.log("field in form renderer:", field);
+// Inject autofill styles
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = autofillStyles;
+  document.head.appendChild(styleElement);
+}
+
+// Field type registry with default props
+const FIELD_TYPES = {
+  text: { component: TextInput, defaultProps: { type: 'text', placeholder: 'Enter text...' }},
+  select: { component: SelectInput, defaultProps: { options: [], placeholder: 'Select an option...' }},
+  checkbox: { component: CheckboxInput, defaultProps: { checked: false }},
+  textarea: { component: TextareaInput, defaultProps: { rows: 4, placeholder: 'Enter text...' }},
+  password: { component: PasswordInput, defaultProps: { type: 'password', placeholder: 'Enter password...' }},
+  markdown: { component: MarkdownInput, defaultProps: { placeholder: 'Enter markdown text...' }},
+  slider: { component: DualRangeSliderInput, defaultProps: { min: 0, max: 100, step: 1, defaultValue: 50 }},
+  dual_slider: { component: DualRangeSliderInput, defaultProps: { min: 0, max: 100, step: 1, defaultValue: [25, 75] }},
+  email: { component: EmailInput, defaultProps: { type: 'email', placeholder: 'Enter email address...' }},
+  date: { component: DateInput, defaultProps: { placeholder: 'Select date...' }},
+  date_time: { component: DateTimeInput, defaultProps: { placeholder: 'Select date and time...' }},
+  time: { component: TimeInput, defaultProps: { placeholder: 'Select time...' }},
+  month: { component: MonthInput, defaultProps: { placeholder: 'Select month...' }},
+  week: { component: WeekInput, defaultProps: { placeholder: 'Select week...' }},
+  multi_select: { component: MultiSelectInput, defaultProps: { options: [], placeholder: 'Select multiple options...' }},
+  lookup: { component: LookupInput, defaultProps: { options: [], placeholder: 'Search and select...' }},
+  file_upload: { component: FileUploadInput, defaultProps: { accept: '*/*', multiple: false }},
+  image_upload_grid: { component: ImageUploadGrid, defaultProps: { maxFiles: 5, accept: 'image/*' }},
+  image_select_grid: { component: ImageSelectGrid, defaultProps: { options: [], multiple: false }},
+  row: { component: Row, defaultProps: { children: [] }},
+  column: { component: Column, defaultProps: { children: [] }},
+  panel: { component: Panel, defaultProps: { title: '', children: [] }},
+  form_steps: { component: FormSteps, defaultProps: { steps: [], currentStep: 0 }}
+};
+
+const LAYOUT_TYPES = new Set(['row', 'column', 'panel']);
+
+// Utility functions
+const evaluateCondition = (condition, values) => {
+  if (typeof condition === 'function') return condition(values);
+  if (typeof condition !== 'object') return Boolean(condition);
+  
+  const { field, operator, value } = condition;
+  const fieldValue = values[field];
+  
+  const operators = {
+    eq: () => fieldValue === value,
+    neq: () => fieldValue !== value,
+    gt: () => fieldValue > value,
+    gte: () => fieldValue >= value,
+    lt: () => fieldValue < value,
+    lte: () => fieldValue <= value,
+    contains: () => fieldValue?.includes(value),
+    startsWith: () => fieldValue?.startsWith(value),
+    endsWith: () => fieldValue?.endsWith(value),
+    empty: () => !fieldValue || fieldValue === '' || fieldValue.length === 0,
+    notEmpty: () => fieldValue && fieldValue !== '' && fieldValue.length > 0,
+    in: () => Array.isArray(value) && value.includes(fieldValue),
+    nin: () => Array.isArray(value) && !value.includes(fieldValue),
+    and: () => Array.isArray(value) && value.every(c => evaluateCondition(c, values)),
+    or: () => Array.isArray(value) && value.some(c => evaluateCondition(c, values))
+  };
+  
+  return operators[operator]?.() || false;
+};
+
+const executeActions = (actions, values, setValues, setErrors) => {
+  if (!actions) return;
+  
+  const actionHandlers = {
+    setValue: (action) => setValues(prev => ({
+      ...prev,
+      [action.targetField]: typeof action.value === 'function' ? action.value(prev) : action.value
+    })),
+    clearValue: (action) => setValues(prev => {
+      const { [action.targetField]: _, ...rest } = prev;
+      return rest;
+    }),
+    setError: (action) => setErrors(prev => ({ ...prev, [action.targetField]: action.message })),
+    clearError: (action) => setErrors(prev => {
+      const { [action.targetField]: _, ...rest } = prev;
+      return rest;
+    })
+  };
+  
+  actions.forEach(action => {
+    const handler = actionHandlers[action.type];
+    if (handler) handler(action);
+    else console.error(`Unknown action type: ${action.type}`);
+  });
+};
+
+// Field validation
+const validateField = (field, formValues, setErrors) => {
+  if (!field.validation) return true;
+  
+  const value = formValues[field.id];
+  const validationRules = {
+    required: (rule) => !value || (typeof value === 'string' && !value.trim()) 
+      ? rule.message || 'This field is required' : null,
+    pattern: (rule) => value && !new RegExp(rule.pattern).test(value) 
+      ? rule.message || 'Invalid format' : null,
+    minLength: (rule) => value && value.length < rule.minLength 
+      ? rule.message || `Minimum length is ${rule.minLength}` : null,
+    maxLength: (rule) => value && value.length > rule.maxLength 
+      ? rule.message || `Maximum length is ${rule.maxLength}` : null,
+    min: (rule) => value && parseFloat(value) < rule.min 
+      ? rule.message || `Minimum value is ${rule.min}` : null,
+    max: (rule) => value && parseFloat(value) > rule.max 
+      ? rule.message || `Maximum value is ${rule.max}` : null,
+    custom: (rule) => typeof rule.custom === 'function' ? rule.custom(value, formValues) : null,
+    condition: (rule) => evaluateCondition(rule.condition, formValues) 
+      ? rule.message || 'Validation failed' : null
+  };
+  
+  const errors = field.validation
+    .map(rule => Object.keys(validationRules)
+      .filter(key => rule[key] !== undefined)
+      .map(key => validationRules[key](rule))
+      .find(error => error)
+    )
+    .filter(Boolean);
+  
+  const hasError = errors.length > 0;
+  setErrors(prev => ({ ...prev, [field.id]: hasError ? errors[0] : undefined }));
+  return !hasError;
+};
+
+// Field renderer component
+const FieldRenderer = ({ field, values, errors, onChange, onFocus, onBlur, fieldsConfig, renderField }) => {
+  const isHidden = field.hidden && evaluateCondition(field.hidden, values);
+  if (isHidden) return null;
+
+  // Handle layout components
+  if (LAYOUT_TYPES.has(field.type)) {
+    const LayoutComponent = FIELD_TYPES[field.type].component;
+    const childFields = (field.children || [])
+      .map(childId => fieldsConfig.find(f => f.id === childId))
+      .filter(Boolean);
+    
     return (
-      
-      <LayoutComponent 
-        title={field.title} 
-        style={field.style}
-        hidden={field.hidden && evaluateCondition(field.hidden, values)}
-      >
-        {childFields.map(childField => 
-          renderField(childField, values, errors, onChange, onFocus, onBlur)
-        )}
+      <LayoutComponent title={field.title} style={field.style} hidden={isHidden}>
+        {childFields.map(childField => renderField(childField))}
       </LayoutComponent>
     );
   }
 
-  // Normal field rendering
-  const FieldComponent = fieldTypes[field.type]?.component;
-  
+  // Handle regular fields
+  const FieldComponent = FIELD_TYPES[field.type]?.component;
   if (!FieldComponent) {
     console.error(`Unknown field type: ${field.type}`);
     return null;
   }
   
-  // Evaluate dynamic props based on other field values
-  const evaluatedProps = {};
-  if (field.dynamicProps) {
-    Object.entries(field.dynamicProps).forEach(([propName, condition]) => {
-      evaluatedProps[propName] = evaluateCondition(condition, values);
-    });
-  }
-  console.log("field in form renderer:", field);
+  // Evaluate dynamic props
+  const evaluatedProps = field.dynamicProps ? 
+    Object.fromEntries(
+      Object.entries(field.dynamicProps).map(([propName, condition]) => 
+        [propName, evaluateCondition(condition, values)]
+      )
+    ) : {};
+  
   return (
     <FieldComponent
       id={field.id}
@@ -229,20 +208,18 @@ function FieldRenderer({
       error={errors[field.id]}
       options={field.options}
       style={field.style}
-      hidden={field.hidden && evaluateCondition(field.hidden, values)}
-      {...fieldTypes[field.type].defaultProps}
+      hidden={isHidden}
+      {...FIELD_TYPES[field.type].defaultProps}
       {...field.props}
       {...evaluatedProps}
     />
   );
-}
+};
 
 // Main DynamicForm Component
-function DynamicForm({ formConfig }) {
-  console.log("new form config:",formConfig);
- if(formConfig.fields === undefined) {
-    return <div>Empty form</div>
- }
+function DynamicForm({ formConfig, onChange, onSubmit }) {
+  if (!formConfig?.fields) return <div>Empty form</div>;
+  
   const [values, setValues] = useState({});
   const [errors, setErrors] = useState({});
   const [currentStep, setCurrentStep] = useState(0);
@@ -250,238 +227,137 @@ function DynamicForm({ formConfig }) {
   
   // Initialize form with default values
   useEffect(() => {
-    const initialValues = {};
-    formConfig.fields.forEach(field => {
-      if (field.defaultValue !== undefined) {
-        initialValues[field.id] = field.defaultValue;
-      }
-    });
+    const initialValues = formConfig.fields.reduce((acc, field) => {
+      if (field.defaultValue !== undefined) acc[field.id] = field.defaultValue;
+      return acc;
+    }, {});
     setValues(prev => ({ ...prev, ...initialValues }));
   }, [formConfig]);
 
-  // Handle field change
-  const handleChange = (fieldId, value, event) => {
+  // Handle field change with callbacks
+  const handleChange = useCallback((fieldId, value, event) => {
     setValues(prev => {
       const newValues = { ...prev, [fieldId]: value };
-      
-      // Execute field change actions
       const field = formConfig.fields.find(f => f.id === fieldId);
+      
+      // Execute field-specific actions
       if (field?.actions?.onChange) {
         executeActions(field.actions.onChange, newValues, setValues, setErrors);
       }
       
-      // Check if we need to validate on change
+      // Validate on change if configured
       if (field?.validateOn?.includes('change')) {
-        validateField(field, newValues);
+        validateField(field, newValues, setErrors);
       }
+      
+      // Call parent onChange callback
+      onChange?.(fieldId, value, newValues, event);
       
       return newValues;
     });
     
     // Mark field as touched
-    setTouched(prev => ({
-      ...prev,
-      [fieldId]: true
-    }));
-  };
+    setTouched(prev => ({ ...prev, [fieldId]: true }));
+  }, [formConfig.fields, onChange]);
 
   // Handle field focus
-  const handleFocus = (fieldId, event) => {
+  const handleFocus = useCallback((fieldId, event) => {
     const field = formConfig.fields.find(f => f.id === fieldId);
     if (field?.actions?.onFocus) {
       executeActions(field.actions.onFocus, values, setValues, setErrors);
     }
-  };
+  }, [formConfig.fields, values]);
 
   // Handle field blur
-  const handleBlur = (fieldId, event) => {
+  const handleBlur = useCallback((fieldId, event) => {
     const field = formConfig.fields.find(f => f.id === fieldId);
     
-    // Mark field as touched
-    setTouched(prev => ({
-      ...prev,
-      [fieldId]: true
-    }));
+    setTouched(prev => ({ ...prev, [fieldId]: true }));
     
-    // Execute blur actions
     if (field?.actions?.onBlur) {
       executeActions(field.actions.onBlur, values, setValues, setErrors);
     }
     
-    // Validate on blur if configured
     if (field?.validateOn?.includes('blur')) {
-      validateField(field, values);
+      validateField(field, values, setErrors);
     }
-  };
-
-  // Validate a single field
-  const validateField = (field, formValues) => {
-    if (!field.validation) return true;
-    
-    let fieldErrors = [];
-    
-    field.validation.forEach(rule => {
-      const value = formValues[field.id];
-      
-      if (rule.required && (!value || (typeof value === 'string' && !value.trim()))) {
-        fieldErrors.push(rule.message || 'This field is required');
-      }
-      
-      if (rule.pattern && value) {
-        const regex = new RegExp(rule.pattern);
-        if (!regex.test(value)) {
-          fieldErrors.push(rule.message || 'Invalid format');
-        }
-      }
-      
-      if (rule.minLength && value && value.length < rule.minLength) {
-        fieldErrors.push(rule.message || `Minimum length is ${rule.minLength}`);
-      }
-      
-      if (rule.maxLength && value && value.length > rule.maxLength) {
-        fieldErrors.push(rule.message || `Maximum length is ${rule.maxLength}`);
-      }
-      
-      if (rule.min && value && parseFloat(value) < rule.min) {
-        fieldErrors.push(rule.message || `Minimum value is ${rule.min}`);
-      }
-      
-      if (rule.max && value && parseFloat(value) > rule.max) {
-        fieldErrors.push(rule.message || `Maximum value is ${rule.max}`);
-      }
-      
-      if (rule.custom && typeof rule.custom === 'function') {
-        const customError = rule.custom(value, formValues);
-        if (customError) {
-          fieldErrors.push(customError);
-        }
-      }
-      
-      if (rule.condition && evaluateCondition(rule.condition, formValues)) {
-        fieldErrors.push(rule.message || 'Validation failed');
-      }
-    });
-    
-    setErrors(prev => ({
-      ...prev,
-      [field.id]: fieldErrors.length > 0 ? fieldErrors[0] : undefined
-    }));
-    
-    return fieldErrors.length === 0;
-  };
-
-  // Validate all fields in current step
-  const validateStep = () => {
-    const currentStepFields = getCurrentStepFields();
-    let isValid = true;
-    
-    currentStepFields.forEach(field => {
-      // Skip validation for hidden fields
-      if (field.hidden && evaluateCondition(field.hidden, values)) {
-        return;
-      }
-      
-      if (field.validation) {
-        const fieldValid = validateField(field, values);
-        if (!fieldValid) {
-          isValid = false;
-        }
-      }
-    });
-    
-    return isValid;
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validate all fields
-    let isValid = true;
-    formConfig.fields.forEach(field => {
-      if (field.validation) {
-        const fieldValid = validateField(field, values);
-        if (!fieldValid) {
-          isValid = false;
-        }
-      }
-    });
-    
-    if (isValid) {
-      formConfig.onSubmit?.(values);
-    } else {
-      // Mark all fields as touched
-      const allTouched = {};
-      formConfig.fields.forEach(field => {
-        allTouched[field.id] = true;
-      });
-      setTouched(allTouched);
-    }
-  };
+  }, [formConfig.fields, values]);
 
   // Get fields for current step
-  const getCurrentStepFields = () => {
-    if (!formConfig.steps || formConfig.steps.length === 0) {
-      return formConfig.fields;
-    }
-    
+  const getCurrentStepFields = useCallback(() => {
+    if (!formConfig.steps?.length) return formConfig.fields;
     const currentStepConfig = formConfig.steps[currentStep];
-    return formConfig.fields.filter(field => 
-      currentStepConfig.fields.includes(field.id)
+    return formConfig.fields.filter(field => currentStepConfig.fields.includes(field.id));
+  }, [formConfig.fields, formConfig.steps, currentStep]);
+
+  // Validate step
+  const validateStep = useCallback(() => {
+    const currentStepFields = getCurrentStepFields();
+    return currentStepFields.every(field => {
+      if (field.hidden && evaluateCondition(field.hidden, values)) return true;
+      return !field.validation || validateField(field, values, setErrors);
+    });
+  }, [getCurrentStepFields, values]);
+
+  // Handle form submission
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+    
+    const isValid = formConfig.fields.every(field => 
+      !field.validation || validateField(field, values, setErrors)
     );
-  };
-
-  // Handle step navigation
-  const handleNextStep = () => {
-    if (validateStep()) {
-      if (currentStep < (formConfig.steps?.length - 1 || 0)) {
-        setCurrentStep(currentStep + 1);
-      }
+    
+    if (isValid) {
+      // Call both form config and prop callbacks
+      formConfig.onSubmit?.(values);
+      onSubmit?.(values, e);
+    } else {
+      // Mark all fields as touched
+      setTouched(Object.fromEntries(formConfig.fields.map(field => [field.id, true])));
     }
-  };
+  }, [formConfig, values, onSubmit]);
 
-  const handlePrevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+  // Step navigation
+  const handleNextStep = useCallback(() => {
+    if (validateStep() && currentStep < (formConfig.steps?.length - 1 || 0)) {
+      setCurrentStep(currentStep + 1);
     }
-  };
+  }, [validateStep, currentStep, formConfig.steps]);
 
-  // Render a field recursively
-  const renderField = (field, values, errors, onChange, onFocus, onBlur) => {
-    return (
-      <FieldRenderer
-        key={field.id}
-        field={field}
-        values={values}
-        errors={errors}
-        onChange={onChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        fieldsConfig={formConfig.fields}
-        renderField={renderField}
-      />
-    );
-  };
+  const handlePrevStep = useCallback(() => {
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
+  }, [currentStep]);
 
-  // Get current fields to render
+  // Render field function
+  const renderField = useCallback((field) => (
+    <FieldRenderer
+      key={field.id}
+      field={field}
+      values={values}
+      errors={errors}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      fieldsConfig={formConfig.fields}
+      renderField={renderField}
+    />
+  ), [values, errors, handleChange, handleFocus, handleBlur, formConfig.fields]);
+
+  // Get fields to render (excluding children of layout components)
   const fieldsToRender = useMemo(() => {
     const currentFields = getCurrentStepFields();
-    
-    // Filter out any fields that are children of layout components
-    // as they will be rendered by their parent
-    const childrenIds = new Set();
-    currentFields.forEach(field => {
-      if (field.children) {
-        field.children.forEach(id => childrenIds.add(id));
-      }
-    });
-    
+    const childrenIds = new Set(
+      currentFields.flatMap(field => field.children || [])
+    );
     return currentFields.filter(field => !childrenIds.has(field.id));
-  }, [formConfig, formConfig.fields,formConfig.steps, currentStep]);
+  }, [getCurrentStepFields]);
+
+  const hasSteps = formConfig.steps?.length > 0;
+  const isLastStep = currentStep >= (formConfig.steps?.length - 1 || 0);
 
   return (
     <div style={styles.layout.form}>
-      {formConfig.steps && formConfig.steps.length > 0 && (
+      {hasSteps && (
         <FormSteps
           steps={formConfig.steps}
           currentStep={currentStep}
@@ -489,54 +365,50 @@ function DynamicForm({ formConfig }) {
         />
       )}
       
-      <form style={{display:"flex", "flexDirection": "column"}} onSubmit={handleSubmit}>
-        {fieldsToRender.map(field => 
-          renderField(field, values, errors, handleChange, handleFocus, handleBlur)
-        )}
+      <form style={{ display: "flex", flexDirection: "column" }} onSubmit={handleSubmit}>
+        {fieldsToRender.map(renderField)}
         
         <div style={styles.base.buttonGroup}>
-          {formConfig.steps && formConfig.steps.length > 0 && (
+          {hasSteps ? (
             <>
               {currentStep > 0 && (
                 <button
                   type="button"
                   onClick={handlePrevStep}
-                  style={{...styles.base.button, ...styles.base.secondaryButton}}
+                  style={{ ...styles.base.button, ...styles.base.secondaryButton }}
                 >
                   Previous
                 </button>
               )}
               
-              {currentStep < formConfig.steps.length - 1 ? (
+              {isLastStep ? (
+                <div style={{ display: 'flex', flexDirection: 'row-reverse' }}>
+                  <button
+                    type="submit"
+                    style={{ ...styles.base.button, ...styles.base.primaryButton }}
+                  >
+                    Submit
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  style={{...styles.base.button, ...styles.base.primaryButton}}
+                  style={{ ...styles.base.button, ...styles.base.primaryButton }}
                 >
                   Next
                 </button>
-              ) : (
-                <div style={{display:'flex', "flexDirection": "row-reverse"}}>
-                <button
-                  type="submit"
-                  style={{...styles.base.button, ...styles.base.primaryButton}}
-                >
-                  Submit
-                </button>
-                </div>
               )}
             </>
-          )}
-          
-          {(!formConfig.steps || formConfig.steps.length === 0) && (
-          <div style={{display:'flex', justifyContent: 'flex-end', width:"100%"}}>
-          <button
-            type="submit"
-            style={{...styles.base.button, ...styles.base.primaryButton}}
-          >
-            Submit
-          </button>
-        </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+              <button
+                type="submit"
+                style={{ ...styles.base.button, ...styles.base.primaryButton }}
+              >
+                Submit
+              </button>
+            </div>
           )}
         </div>
       </form>
@@ -544,384 +416,4 @@ function DynamicForm({ formConfig }) {
   );
 }
 
-// Helper functions
-function evaluateCondition(condition, values) {
-  if (typeof condition === 'function') {
-    return condition(values);
-  }
-  
-  if (typeof condition === 'object') {
-    const { field, operator, value } = condition;
-    const fieldValue = values[field];
-    
-    switch (operator) {
-      case 'eq':
-        return fieldValue === value;
-      case 'neq':
-        return fieldValue !== value;
-      case 'gt':
-        return fieldValue > value;
-      case 'gte':
-        return fieldValue >= value;
-      case 'lt':
-        return fieldValue < value;
-      case 'lte':
-        return fieldValue <= value;
-      case 'contains':
-        return fieldValue?.includes(value);
-      case 'startsWith':
-        return fieldValue?.startsWith(value);
-      case 'endsWith':
-        return fieldValue?.endsWith(value);
-      case 'empty':
-        return !fieldValue || fieldValue === '' || fieldValue.length === 0;
-      case 'notEmpty':
-        return fieldValue && fieldValue !== '' && fieldValue.length > 0;
-      case 'in':
-        return Array.isArray(value) && value.includes(fieldValue);
-      case 'nin':
-        return Array.isArray(value) && !value.includes(fieldValue);
-      case 'and':
-        return Array.isArray(value) && value.every(c => evaluateCondition(c, values));
-      case 'or':
-        return Array.isArray(value) && value.some(c => evaluateCondition(c, values));
-      default:
-        return false;
-    }
-  }
-  
-  return Boolean(condition);
-}
-
-function executeActions(actions, values, setValues, setErrors) {
-  if (!actions) return;
-  
-  // Execute each action
-  actions.forEach(action => {
-    switch (action.type) {
-      case 'setValue':
-        setValues(prev => ({
-          ...prev,
-          [action.targetField]: 
-            typeof action.value === 'function' 
-              ? action.value(prev) 
-              : action.value
-        }));
-        break;
-      case 'clearValue':
-        setValues(prev => {
-          const newValues = { ...prev };
-          delete newValues[action.targetField];
-          return newValues;
-        });
-        break;
-      case 'setError':
-        setErrors(prev => ({
-          ...prev,
-          [action.targetField]: action.message
-        }));
-        break;
-      case 'clearError':
-        setErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[action.targetField];
-          return newErrors;
-        });
-        break;
-      default:
-        console.error(`Unknown action type: ${action.type}`);
-    }
-  });
-}
-
-// Example of usage
-function FormBuilderDemo() {
-  const exampleFormConfig = {
-    fields: [
-      {
-        id: 'personalInfo',
-        type: 'panel',
-        title: 'Personal Information',
-        children: ['firstName', 'lastName', 'email'],
-        style: {
-          container: {
-            backgroundColor: '#f0f9ff',
-            borderLeft: '4px solid #3b82f6',
-          }
-        }
-      },
-      {
-        id: 'firstName',
-        type: 'text',
-        label: 'First Name',
-        defaultValue: '',
-        validation: [
-          { required: true, message: 'First name is required' },
-          { minLength: 2, message: 'First name must be at least 2 characters' }
-        ],
-        validateOn: ['blur', 'submit'],
-        props: {
-          placeholder: 'Enter your first name'
-        }
-      },
-      {
-        id: 'lastName',
-        type: 'text',
-        label: 'Last Name',
-        defaultValue: '',
-        validation: [
-          { required: true, message: 'Last name is required' }
-        ],
-        validateOn: ['blur', 'submit'],
-        props: {
-          placeholder: 'Enter your last name'
-        }
-      },
-      {
-        id: 'email',
-        type: 'text',
-        label: 'Email',
-        defaultValue: '',
-        validation: [
-          { required: true, message: 'Email is required' },
-          { 
-            pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$', 
-            message: 'Please enter a valid email address' 
-          }
-        ],
-        validateOn: ['blur', 'submit'],
-        props: {
-          type: 'email',
-          placeholder: 'Enter your email address'
-        }
-      },
-      {
-        id: 'addressRow',
-        type: 'row',
-        children: ['addressColumn1', 'addressColumn2'],
-      },
-      {
-        id: 'addressColumn1',
-        type: 'column',
-        children: ['address', 'city'],
-      },
-      {
-        id: 'addressColumn2',
-        type: 'column',
-        children: ['state', 'zip'],
-      },
-      {
-        id: 'address',
-        type: 'text',
-        label: 'Address',
-        defaultValue: '',
-        props: {
-          placeholder: 'Enter your street address'
-        }
-      },
-      {
-        id: 'city',
-        type: 'text',
-        label: 'City',
-        defaultValue: '',
-        props: {
-          placeholder: 'Enter your city'
-        }
-      },
-      {
-        id: 'state',
-        type: 'select',
-        label: 'State',
-        defaultValue: '',
-        options: [
-          { value: 'CA', label: 'California' },
-          { value: 'NY', label: 'New York' },
-          { value: 'TX', label: 'Texas' },
-          { value: 'FL', label: 'Florida' }
-        ],
-        props: {
-          placeholder: 'Select your state'
-        }
-      },
-      {
-        id: 'zip',
-        type: 'text',
-        label: 'ZIP Code',
-        defaultValue: '',
-        validation: [
-          { pattern: '^\\d{5}(-\\d{4})?, message: "Please enter a valid ZIP code"' }
-        ],
-        validateOn: ['blur', 'submit'],
-        props: {
-          placeholder: 'Enter ZIP code'
-        }
-      },
-      {
-        id: 'hasMailingAddress',
-        type: 'checkbox',
-        label: 'Mailing address is different from residential address',
-        defaultValue: false,
-        actions: {
-          onChange: [
-            {
-              type: 'setValue',
-              targetField: 'mailingAddressPanel',
-              value: (values) => values.hasMailingAddress
-            }
-          ]
-        }
-      },
-      {
-        id: 'mailingAddressPanel',
-        type: 'panel',
-        title: 'Mailing Address',
-        children: ['mailingAddressRow'],
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true },
-        style: {
-          container: {
-            backgroundColor: '#fef2f2',
-            borderLeft: '4px solid #ef4444',
-          }
-        }
-      },
-      {
-        id: 'mailingAddressRow',
-        type: 'row',
-        children: ['mailingColumn1', 'mailingColumn2'],
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true }
-      },
-      {
-        id: 'mailingColumn1',
-        type: 'column',
-        children: ['mailingAddress', 'mailingCity'],
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true }
-      },
-      {
-        id: 'mailingColumn2',
-        type: 'column',
-        children: ['mailingState', 'mailingZip'],
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true }
-      },
-      {
-        id: 'mailingAddress',
-        type: 'text',
-        label: 'Mailing Address',
-        defaultValue: '',
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true },
-        props: {
-          placeholder: 'Enter your mailing address'
-        }
-      },
-      {
-        id: 'mailingCity',
-        type: 'text',
-        label: 'City',
-        defaultValue: '',
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true },
-        props: {
-          placeholder: 'Enter your city'
-        }
-      },
-      {
-        id: 'mailingState',
-        type: 'select',
-        label: 'State',
-        defaultValue: '',
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true },
-        options: [
-          { value: 'CA', label: 'California' },
-          { value: 'NY', label: 'New York' },
-          { value: 'TX', label: 'Texas' },
-          { value: 'FL', label: 'Florida' }
-        ],
-        props: {
-          placeholder: 'Select your state'
-        }
-      },
-      {
-        id: 'mailingZip',
-        type: 'text',
-        label: 'ZIP Code',
-        defaultValue: '',
-        hidden: { field: 'hasMailingAddress', operator: 'neq', value: true },
-        validation: [
-          { pattern: '^\\d{5}(-\\d{4})?, message: Please enter a valid ZIP code' }
-        ],
-        validateOn: ['blur', 'submit'],
-        props: {
-          placeholder: 'Enter ZIP code'
-        }
-      },
-      {
-        id: 'comments',
-        type: 'textarea',
-        label: 'Additional Comments',
-        defaultValue: '',
-        props: {
-          placeholder: 'Any additional information you would like to share',
-          rows: 4
-        },
-        style: {
-          input: {
-            minHeight: '100px'
-          }
-        }
-      },
-      {
-        id: 'subscribe',
-        type: 'checkbox',
-        label: 'Subscribe to newsletter',
-        defaultValue: false,
-        actions: {
-          onChange: [
-            {
-              type: 'setValue',
-              targetField: 'frequency',
-              value: (values) => values.subscribe ? 'weekly' : ''
-            }
-          ]
-        }
-      },
-      {
-        id: 'frequency',
-        type: 'select',
-        label: 'Newsletter Frequency',
-        defaultValue: '',
-        hidden: { field: 'subscribe', operator: 'neq', value: true },
-        options: [
-          { value: 'daily', label: 'Daily' },
-          { value: 'weekly', label: 'Weekly' },
-          { value: 'monthly', label: 'Monthly' }
-        ],
-        props: {
-          placeholder: 'Select frequency'
-        }
-      }
-    ],
-    steps: [
-      {
-        title: 'Personal Info',
-        fields: ['personalInfo', 'firstName', 'lastName', 'email']
-      },
-      {
-        title: 'Address',
-        fields: ['addressRow', 'addressColumn1', 'addressColumn2', 'address', 'city', 'state', 'zip', 'hasMailingAddress', 'mailingAddressPanel', 'mailingAddressRow', 'mailingColumn1', 'mailingColumn2', 'mailingAddress', 'mailingCity', 'mailingState', 'mailingZip']
-      },
-      {
-        title: 'Preferences',
-        fields: ['comments', 'subscribe', 'frequency']
-      }
-    ],
-    onSubmit: (values) => {
-      console.log('Form submitted with values:', values);
-      alert('Form submitted successfully!');
-    }
-  };
-
-  return (
-    <DynamicForm formConfig={exampleFormConfig} />
-  );
-}
-
-// Render the form builder demo
-export  {FormBuilderDemo, DynamicForm};
+export { DynamicForm };
